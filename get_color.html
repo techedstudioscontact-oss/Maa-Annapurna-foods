@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <canvas id="c"></canvas>
+    <img id="img" src="f:/Maa Annapurna foods/frames/ezgif-frame-001.jpg" style="display:none;" onload="
+        var c = document.getElementById('c');
+        var ctx = c.getContext('2d');
+        c.width = img.width;
+        c.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        var p = ctx.getImageData(0, 0, 1, 1).data;
+        var hex = '#' + ('000000' + ((p[0] << 16) | (p[1] << 8) | p[2]).toString(16)).substring(-6);
+        console.log('BG_COLOR:' + hex);
+        document.body.innerHTML = 'BG_COLOR:' + hex;
+    ">
+</body>
+</html>

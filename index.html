@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maa Annapurna Foods | Pure Taste, Divine Quality</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- GSAP + Lenis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif'],
+                    },
+                    colors: {
+                        cream: { 50: '#FFFCF8', 100: '#FFF8F0', 200: '#F5EBE1', 300: '#E8DCCB' },
+                        saffron: { light: '#FFF0E5', DEFAULT: '#F97316', hover: '#EA580C' },
+                        earth: { DEFAULT: '#2A241E', light: '#3D352D' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: theme('colors.cream.100');
+            color: theme('colors.earth.DEFAULT');
+            overflow-x: hidden;
+        }
+
+
+        /* Floating Particles Canvas (hidden - replaced by CSS grains) */
+        #particles-canvas { display: none; }
+
+        /* CSS Grain Particles */
+        .grain {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 50%;
+            animation: grainFloat linear infinite;
+            will-change: transform;
+        }
+        .grain.rice  { border-radius: 60% 40% 70% 30% / 60% 30% 70% 40%; }
+        .grain.masala { border-radius: 20%; }
+
+        @keyframes grainFloat {
+            0%   { transform: translate(0, 0)      rotate(0deg);   }
+            20%  { transform: translate(12px, -18px) rotate(72deg);  }
+            40%  { transform: translate(-8px, -35px) rotate(144deg); }
+            60%  { transform: translate(20px, -28px) rotate(216deg); }
+            80%  { transform: translate(-15px,-10px) rotate(288deg); }
+            100% { transform: translate(0, 0)      rotate(360deg); }
+        }
+        @keyframes grainFloat2 {
+            0%   { transform: translate(0, 0)       rotate(0deg);  }
+            33%  { transform: translate(-20px,-25px) rotate(120deg);}
+            66%  { transform: translate(18px, -40px) rotate(240deg);}
+            100% { transform: translate(0, 0)       rotate(360deg);}
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: theme('colors.cream.100');
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.saffron.DEFAULT');
+            border-radius: 4px;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark-glass {
+            background: rgba(35, 30, 25, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Hero Image Sequence Canvas */
+        #hero-sequence {
+            position: relative;
+            height: 400vh;
+            z-index: 10;
+        }
+
+        .hero-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        #hero-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            mix-blend-mode: multiply;
+            filter: contrast(1.05) saturate(1.1);
+            transform: scale(0.85);
+            transform-origin: center right;
+        }
+
+        /* Hero Text Content Container - stays fixed while canvas scrubs */
+        .hero-content-fixed {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .hero-text-block {
+            pointer-events: auto;
+            max-width: 600px;
+            padding-left: max(24px, calc(50vw - 600px));
+        }
+
+        .decorative-dot {
+            position: absolute;
+            right: 28%;
+            top: 38%;
+            width: 12px;
+            height: 12px;
+            background: theme('colors.saffron.DEFAULT');
+            border-radius: 50%;
+            border: 4px solid theme('colors.cream.100');
+            box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.5);
+            z-index: 10;
+        }
+
+        /* Section Reveal Classes */
+        .gsap-reveal {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .gsap-scale {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        /* Product Cards */
+        .product-card {
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-style: preserve-3d;
+        }
+
+        /* Scroll-highlight specific styles */
+        .product-card.focused {
+            transform: scale(1.03) translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(249, 115, 22, 0.15);
+            border-color: rgba(249, 115, 22, 0.3);
+            z-index: 20;
+        }
+
+        .product-card.dimmed {
+            opacity: 0.4;
+            transform: scale(0.97);
+            filter: grayscale(50%);
+        }
+
+        .badge {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 12px;
+            border-radius: 100px;
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            color: theme('colors.saffron.DEFAULT');
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-saffron selection:text-white">
+
+
+    <!-- CSS Floating Grain Particles -->
+    <!-- Rice grains - cream/off-white elongated -->
+    <div class="grain rice" style="left:5%;  top:12%; width:10px;height:4px;  background:#D4C9B8; opacity:0.45; animation-duration:14s; animation-name:grainFloat;"></div>
+    <div class="grain rice" style="left:18%; top:65%; width:12px;height:4px;  background:#E8DCCB; opacity:0.35; animation-duration:18s; animation-delay:-5s; animation-name:grainFloat2;"></div>
+    <div class="grain rice" style="left:72%; top:22%; width:9px; height:3px;  background:#F5EBE1; opacity:0.40; animation-duration:16s; animation-delay:-8s; animation-name:grainFloat;"></div>
+    <div class="grain rice" style="left:88%; top:55%; width:11px;height:4px;  background:#D4C9B8; opacity:0.35; animation-duration:20s; animation-delay:-3s; animation-name:grainFloat2;"></div>
+    <div class="grain rice" style="left:45%; top:80%; width:8px; height:3px;  background:#E8DCCB; opacity:0.40; animation-duration:15s; animation-delay:-10s;animation-name:grainFloat;"></div>
+    <div class="grain rice" style="left:30%; top:35%; width:13px;height:5px;  background:#D4C9B8; opacity:0.30; animation-duration:22s; animation-delay:-2s; animation-name:grainFloat2;"></div>
+    <div class="grain rice" style="left:60%; top:90%; width:10px;height:4px;  background:#F5EBE1; opacity:0.38; animation-duration:17s; animation-delay:-7s; animation-name:grainFloat;"></div>
+    <div class="grain rice" style="left:82%; top:10%; width:9px; height:3px;  background:#E8DCCB; opacity:0.42; animation-duration:13s; animation-delay:-4s; animation-name:grainFloat2;"></div>
+    <!-- Wheat dots - golden amber -->  
+    <div class="grain" style="left:10%; top:45%; width:6px; height:6px;  background:#D4A017; opacity:0.45; animation-duration:12s; animation-name:grainFloat;"></div>
+    <div class="grain" style="left:25%; top:15%; width:5px; height:5px;  background:#C48B0A; opacity:0.40; animation-duration:16s; animation-delay:-6s; animation-name:grainFloat2;"></div>
+    <div class="grain" style="left:55%; top:50%; width:7px; height:7px;  background:#E8C158; opacity:0.35; animation-duration:19s; animation-delay:-3s; animation-name:grainFloat;"></div>
+    <div class="grain" style="left:75%; top:75%; width:5px; height:5px;  background:#D4A017; opacity:0.42; animation-duration:14s; animation-delay:-9s; animation-name:grainFloat2;"></div>
+    <div class="grain" style="left:92%; top:30%; width:6px; height:6px;  background:#C48B0A; opacity:0.38; animation-duration:21s; animation-delay:-1s; animation-name:grainFloat;"></div>
+    <div class="grain" style="left:38%; top:60%; width:5px; height:5px;  background:#E8C158; opacity:0.45; animation-duration:11s; animation-delay:-5s; animation-name:grainFloat2;"></div>
+    <div class="grain" style="left:65%; top:8%;  width:6px; height:6px;  background:#D4A017; opacity:0.35; animation-duration:18s; animation-delay:-12s;animation-name:grainFloat;"></div>
+    <!-- Masala flecks - saffron & deep red -->
+    <div class="grain masala" style="left:15%; top:78%; width:5px; height:5px; background:#F97316; opacity:0.40; animation-duration:13s; animation-delay:-4s; animation-name:grainFloat2;"></div>
+    <div class="grain masala" style="left:48%; top:25%; width:4px; height:4px; background:#C0392B; opacity:0.35; animation-duration:17s; animation-delay:-8s; animation-name:grainFloat;"></div>
+    <div class="grain masala" style="left:70%; top:42%; width:5px; height:5px; background:#8B4513; opacity:0.38; animation-duration:15s; animation-delay:-2s; animation-name:grainFloat2;"></div>
+    <div class="grain masala" style="left:85%; top:85%; width:4px; height:4px; background:#F97316; opacity:0.42; animation-duration:20s; animation-delay:-6s; animation-name:grainFloat;"></div>
+    <div class="grain masala" style="left:3%;  top:55%; width:5px; height:5px; background:#C0392B; opacity:0.35; animation-duration:16s; animation-delay:-11s;animation-name:grainFloat2;"></div>
+    <div class="grain masala" style="left:35%; top:5%;  width:4px; height:4px; background:#8B4513; opacity:0.40; animation-duration:22s; animation-delay:-3s; animation-name:grainFloat;"></div>
+    <div class="grain masala" style="left:52%; top:70%; width:5px; height:5px; background:#F97316; opacity:0.35; animation-duration:14s; animation-delay:-7s; animation-name:grainFloat2;"></div>
+
+    <!-- NAVBAR -->
+    <nav id="navbar"
+        class="fixed top-0 w-full z-50 transition-all duration-500 py-6 px-8 flex items-center justify-between">
+        <a href="#" class="font-serif text-2xl tracking-tight text-earth">Maa Annapurna <span
+                class="text-saffron italic">foods</span></a>
+        <div class="hidden md:flex items-center gap-10 text-[13px] font-medium text-earth/60 uppercase tracking-widest">
+            <a href="#story" class="hover:text-saffron transition-colors">Our Story</a>
+            <a href="#products" class="hover:text-saffron transition-colors">Products</a>
+            <a href="#quality" class="hover:text-saffron transition-colors">Quality</a>
+            <a href="#app-download" class="hover:text-saffron transition-colors">App</a>
+        </div>
+        <a href="#products"
+            class="rounded-full px-6 py-2.5 text-sm font-semibold bg-saffron text-white shadow-lg shadow-saffron/30 hover:bg-saffron-hover transition-all duration-300 flex items-center gap-2 cursor-hover">
+            Order Now
+        </a>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative min-h-screen flex items-center pt-24 pb-12 overflow-hidden bg-cream-100">
+        <!-- Background Elements -->
+        <div class="absolute right-0 top-0 w-1/2 h-full opacity-60 mix-blend-multiply pointer-events-none z-0">
+            <img src="assets/hero_grain.png" id="hero-image"
+                class="w-full h-full object-cover object-right" alt="Premium Grains">
+        </div>
+        <div
+            class="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-transparent to-cream-100 pointer-events-none z-0">
+        </div>
+
+        <!-- Decorative Elements -->
+        <div class="decorative-ring"></div>
+        <div class="decorative-dot"></div>
+
+        <div
+            class="w-full max-w-7xl mx-auto px-6 md:px-12 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mt-12">
+            <div>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-[1px] bg-saffron"></div>
+                    <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-saffron">Hazaribagh,
+                        Jharkhand</span>
+                </div>
+
+                <h1
+                    class="font-serif text-6xl md:text-[80px] font-light leading-[1.05] tracking-tight mb-8">
+                    Pure Taste,<br>
+                    <span class="text-saffron">Divine Quality.</span>
+                </h1>
+
+                <p class="text-earth/70 text-lg leading-relaxed mb-10 max-w-md">
+                    Your neighbourhood store reimagined. Premium groceries, home essentials, and fresh-quality products
+                    — curated with love and delivered with trust.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <a href="#products"
+                        class="w-full sm:w-auto px-8 py-4 bg-earth text-white rounded-full font-medium inline-flex justify-center items-center gap-3 hover:bg-black transition-all shadow-xl">
+                        Explore Products
+                    </a>
+                    <a href="#story"
+                        class="text-earth/60 font-medium text-sm flex items-center gap-2 hover:text-earth transition-colors">
+                        Our Story <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STORY / ABOUT -->
+    <section id="story" class="py-32 bg-cream-50 relative z-20 shadow-[0_-20px_40px_rgba(255,248,240,1)]">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+
+            <div class="order-2 lg:order-1 relative gsap-reveal">
+                <div class="w-full aspect-[4/3] rounded-[32px] overflow-hidden shadow-2xl relative" id="story-image">
+                    <img src="assets/hero.png" alt="Pure Raw Ingredients"
+                        class="w-full h-full object-cover transform scale-110">
+                    <div
+                        class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-5 py-3 rounded-full flex items-center gap-3 shadow-lg">
+                        <div class="w-2 h-2 rounded-full bg-saffron animate-pulse"></div>
+                        <span class="text-sm font-semibold text-earth">Open 7:30 AM – 9:00 PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-1 lg:order-2">
+                <div class="flex items-center gap-4 mb-6 gsap-reveal">
+                    <div class="w-8 h-[1px] bg-saffron"></div>
+                    <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-saffron">Our Heritage</span>
+                </div>
+
+                <h2 class="font-serif text-5xl md:text-6xl font-light leading-tight mb-8 gsap-reveal">
+                    A story of<br><span class="italic text-earth">pure devotion.</span>
+                </h2>
+
+                <div class="text-earth/70 text-[17px] leading-relaxed space-y-6 mb-12 gsap-reveal">
+                    <p>Maa Annapurna Foods was born from a simple belief: every family deserves access to pure,
+                        wholesome groceries without compromise. Located in the heart of Hazaribagh, we've been serving
+                        our community since day one.</p>
+                    <p>From fragrant basmati rice to fresh whole-wheat atta and hand-selected spices, every product on
+                        our shelf is chosen with the same care a mother brings to her kitchen.</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-8 pt-8 border-t border-earth/10 gsap-reveal">
+                    <div>
+                        <div class="font-serif text-4xl text-saffron mb-1">500+</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-earth/50">Families</div>
+                    </div>
+                    <div>
+                        <div class="font-serif text-4xl text-saffron mb-1">200+</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-earth/50">Curated</div>
+                    </div>
+                    <div>
+                        <div class="font-serif text-4xl text-saffron mb-1">7</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-earth/50">Days/Week</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUALITY & TRUST (Animated icons + glassmorphism) -->
+    <section id="quality" class="py-24 relative z-20">
+        <!-- Parallax Background Image -->
+        <div class="absolute inset-0 z-0 overflow-hidden">
+            <img src="assets/hero_grain.png"
+                class="w-full h-full object-cover opacity-[0.03] scale-125" id="quality-bg" alt="texture">
+        </div>
+        <div class="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-panel p-10 rounded-3xl text-center gsap-scale shadow-sm">
+                    <div
+                        class="w-20 h-20 mx-auto bg-cream-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                        <i class="ph-duotone ph-leaf text-4xl text-saffron"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl font-medium mb-4">100% Pure & Fresh</h3>
+                    <p class="text-earth/60 text-sm leading-relaxed">Sourced directly from trusted farms, ensuring no
+                        artificial additives or preservatives compromise the taste.</p>
+                </div>
+                <div class="glass-panel p-10 rounded-3xl text-center gsap-scale shadow-sm delay-100">
+                    <div
+                        class="w-20 h-20 mx-auto bg-cream-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                        <i class="ph-duotone ph-shield-check text-4xl text-saffron"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl font-medium mb-4">Certified Quality</h3>
+                    <p class="text-earth/60 text-sm leading-relaxed">Every item passes rigorous 9-stage quality checks
+                        before it makes it to your kitchen shelves.</p>
+                </div>
+                <div class="glass-panel p-10 rounded-3xl text-center gsap-scale shadow-sm delay-200">
+                    <div
+                        class="w-20 h-20 mx-auto bg-cream-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                        <i class="ph-duotone ph-heart text-4xl text-saffron"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl font-medium mb-4">Community Trusted</h3>
+                    <p class="text-earth/60 text-sm leading-relaxed">Built on a foundation of trust, serving Hazaribagh
+                        families with dedication and continuous love.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- OUR SELECTION -->
+    <section id="selection" class="pt-32 pb-16 bg-[#1A1612] relative z-20">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gsap-reveal">
+                <div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-8 h-[1px] bg-saffron"></div>
+                        <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-saffron">Our Selection</span>
+                    </div>
+                    <h2 class="font-serif text-5xl md:text-6xl font-light text-white">What we offer.</h2>
+                </div>
+                <p class="text-white/50 text-sm max-w-xs md:text-right mt-6 md:mt-0">Carefully selected to bring quality and purity into your home, every single day.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Atta Card (Bhumi) -->
+                <div class="product-card bg-[#231E19] rounded-[32px] overflow-hidden group border border-white/5 flex flex-col">
+                    <div class="relative h-[480px] w-full overflow-hidden bg-black/50">
+                        <span class="absolute top-8 left-8 z-10 bg-saffron text-white text-[10px] font-bold px-4 py-2 rounded-full uppercase tracking-wider">BEST SELLER</span>
+                        <!-- Replace with appropriate artifact if known, otherwise placeholder -->
+                        <img src="assets/grocery.png" alt="Bhumi Atta" class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 opacity-90">
+                    </div>
+                    <div class="p-10 text-white flex-1">
+                        <h3 class="font-serif text-3xl mb-4">Whole Wheat Atta</h3>
+                        <p class="text-white/50 text-[15px] leading-relaxed">Stone-ground from the finest wheat. The cornerstone of every Indian kitchen — bringing soft, nutritious, and full flavor to your daily breads.</p>
+                    </div>
+                </div>
+
+                <!-- Rice Card (Pride of Indus) -->
+                <div class="product-card bg-[#231E19] rounded-[32px] overflow-hidden group border border-white/5 flex flex-col">
+                    <div class="relative h-[480px] w-full overflow-hidden bg-black/50">
+                        <span class="absolute top-8 left-8 z-10 bg-saffron text-white text-[10px] font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-lg">PREMIUM</span>
+                        <img src="assets/rice.png" alt="Pride of Indus Rice" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 opacity-90">
+                    </div>
+                    <div class="p-10 text-white flex-1">
+                        <h3 class="font-serif text-3xl mb-4">Basmati Rice</h3>
+                        <p class="text-white/50 text-[15px] leading-relaxed">Long-grain, aromatic, and aged to perfection. The finest basmati you'll ever taste, carefully aged for that distinct fragrance and extra-long grain.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE PRODUCTS GRID (with GSAP focus) -->
+    <section id="products" class="pt-16 pb-32 bg-[#1A1612] relative z-20">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+
+            <div class="text-center mb-24 text-white gsap-reveal">
+                <div class="flex items-center justify-center gap-4 mb-4">
+                    <div class="w-8 h-[1px] bg-saffron"></div>
+                    <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-saffron">The Ecosystem</span>
+                    <div class="w-8 h-[1px] bg-saffron"></div>
+                </div>
+                <h2 class="font-serif text-5xl md:text-6xl font-light mb-6">Everything you need.</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="products-grid">
+
+                <!-- Card 1 -->
+                <div class="product-card dark-glass rounded-3xl p-8 md:col-span-2 group">
+                    <div class="h-56 rounded-2xl bg-black/40 mb-8 overflow-hidden relative">
+                        <img src="assets/atta.png"
+                            class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen group-hover:scale-105 transition-transform duration-700">
+                    </div>
+                    <div class="relative z-10 text-white">
+                        <h3 class="font-serif text-3xl mb-3">Whole Wheat Atta</h3>
+                        <p class="text-white/50 text-sm mb-8 leading-relaxed max-w-md">Stone-ground from the finest
+                            wheat. The cornerstone of every Indian kitchen — soft, nutritious, and full of flavour.
+                            Experience the golden standard of rotis.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex gap-3">
+                                <span class="badge">100% Pure</span>
+                                <span class="badge">Stone Ground</span>
+                            </div>
+                            <a href="#"
+                                class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/50 group-hover:bg-saffron group-hover:text-white group-hover:border-saffron transition-all cursor-hover"><i
+                                    class="ph-bold ph-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="product-card dark-glass rounded-3xl p-8 flex flex-col group">
+                    <div class="flex-1 flex items-center justify-center mb-6 relative h-40">
+                        <img src="assets/rice_premium.png" alt="Basmati Rice"
+                            class="w-3/4 opacity-60 filter grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 hover:-translate-y-2">
+                    </div>
+                    <div class="text-white mt-auto">
+                        <h3 class="font-serif text-2xl mb-3">Aged Basmati Rice</h3>
+                        <p class="text-white/50 text-sm mb-6 leading-relaxed">Long-grain, aromatic, and aged to
+                            perfection. The finest basmati you'll ever taste.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex gap-2"><span class="badge">Aged</span><span class="badge">Aromatic</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="product-card dark-glass rounded-3xl p-0 group overflow-hidden flex flex-col">
+                    <div class="h-48 relative">
+                        <img src="assets/spices.png" alt="Spices"
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1A1612] via-transparent to-transparent">
+                        </div>
+                    </div>
+                    <div class="p-8 pt-0 flex-1 flex flex-col text-white">
+                        <h3 class="font-serif text-2xl mb-3 mt-4">Curated Spices</h3>
+                        <p class="text-white/50 text-sm mb-6 leading-relaxed">Hand-selected from the finest farms. Bold
+                            flavours that ignite your cooking instantly.</p>
+                        <div class="flex items-center justify-between mt-auto">
+                            <div class="flex gap-2"><span class="badge">Natural</span><span
+                                    class="badge">Fragrant</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 & 5... -->
+                <div
+                    class="product-card dark-glass rounded-3xl p-8 text-center flex flex-col items-center group text-white">
+                    <i
+                        class="ph-duotone ph-house text-6xl text-saffron mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="font-serif text-2xl mb-3">Home Essentials</h3>
+                    <p class="text-white/50 text-sm mb-6 leading-relaxed">From cleaning products to daily hygiene —
+                        everything your home needs.</p>
+                </div>
+
+                <div
+                    class="product-card dark-glass rounded-3xl p-8 text-center flex flex-col items-center group text-white">
+                    <i
+                        class="ph-duotone ph-device-mobile text-6xl text-emerald-500 mb-6 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="font-serif text-2xl mb-3">Electronics</h3>
+                    <p class="text-white/50 text-sm mb-6 leading-relaxed">Smart devices and basic electronics curated
+                        for modern living.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- APP DOWNLOAD SECTION (Apple-style sleek integration) -->
+    <section id="app-download" class="py-32 bg-cream-200 relative z-20 overflow-hidden">
+        <!-- Floating shapes -->
+        <div
+            class="absolute right-[-10%] top-[-20%] w-[50vw] h-[50vw] bg-saffron/10 rounded-full blur-[100px] pointer-events-none">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col lg:flex-row items-center gap-16">
+            <div class="w-full lg:w-1/2 gsap-reveal">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-8 h-[1px] bg-saffron"></div>
+                    <span class="text-[10px] font-bold tracking-[0.3em] uppercase text-saffron">Digital
+                        Experience</span>
+                </div>
+                <h2 class="font-serif text-5xl md:text-[64px] font-light leading-tight mb-8">
+                    Premium groceries,<br>now in your pocket.
+                </h2>
+                <p class="text-earth/60 text-lg leading-relaxed mb-10 max-w-md">
+                    We've brought the entire Maa Annapurna collection to a beautifully designed mobile app. Shop
+                    effortlessly, track deliveries in real-time, and unlock app-exclusive pricing.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#"
+                        class="bg-white hover:bg-cream-50 border border-saffron/20 transition-all rounded-2xl px-8 py-4 flex items-center gap-4 shadow-xl shadow-saffron/5 cursor-hover hover:-translate-y-1">
+                        <i class="ph-fill ph-apple-logo text-3xl text-earth"></i>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[10px] uppercase tracking-wider text-earth/50">Download on the</span>
+                            <span class="font-semibold text-lg leading-tight tracking-tight text-earth">App Store</span>
+                        </div>
+                    </a>
+                    <a href="#"
+                        class="bg-white hover:bg-cream-50 border border-saffron/20 transition-all rounded-2xl px-8 py-4 flex items-center gap-4 shadow-xl shadow-saffron/5 cursor-hover hover:-translate-y-1">
+                        <i class="ph-fill ph-google-play-logo text-3xl text-earth"></i>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[10px] uppercase tracking-wider text-earth/50">GET IT ON</span>
+                            <span class="font-semibold text-lg leading-tight tracking-tight text-earth">Google
+                                Play</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/2 flex justify-center gsap-reveal">
+                <div
+                    class="relative perspective-1000 transform group hover:-translate-y-4 transition-transform duration-700">
+                    <img src="assets/app_mockup.png" alt="Maa Annapurna App Interface"
+                        class="w-full max-w-[340px] transform -rotate-y-12 rotate-x-6 drop-shadow-[20px_40px_60px_rgba(249,115,22,0.2)] rounded-[40px] border-[8px] border-white/50 bg-white shadow-2xl">
+                    <div
+                        class="absolute -inset-10 bg-gradient-to-tr from-saffron/20 to-transparent blur-3xl -z-10 rounded-full">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-earth text-white/70 py-24 relative z-20 border-t-4 border-saffron">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
+            <div class="md:col-span-2">
+                <h2 class="font-serif text-3xl font-light mb-6">Maa Annapurna <span
+                        class="text-saffron italic font-medium">foods</span></h2>
+                <p class="max-w-sm mb-8 text-sm leading-relaxed">Delivering purity and uncompromising quality to the
+                    homes of Hazaribagh. An Apple-inspired approach to everyday essentials.</p>
+                <div class="flex gap-4">
+                    <a href="#"
+                        class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-saffron hover:text-white hover:border-saffron transition-all cursor-hover"><i
+                            class="ph-fill ph-instagram-logo"></i></a>
+                    <a href="#"
+                        class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-saffron hover:text-white hover:border-saffron transition-all cursor-hover"><i
+                            class="ph-fill ph-facebook-logo"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-[0.2em] text-white mb-6">Explore</h4>
+                <ul class="space-y-4 text-sm">
+                    <li><a href="#story" class="hover:text-saffron transition-colors cursor-hover">Our Heritage</a></li>
+                    <li><a href="#products" class="hover:text-saffron transition-colors cursor-hover">The Ecosystem</a>
+                    </li>
+                    <li><a href="#quality" class="hover:text-saffron transition-colors cursor-hover">Quality Promise</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-[0.2em] text-white mb-6">Visit Us</h4>
+                <ul class="space-y-4 text-sm">
+                    <li>White Building, Ram Nagar Rd</li>
+                    <li>Near Jado Babu Chowk</li>
+                    <li>Hazaribagh, Jharkhand 825301</li>
+                    <li class="mt-4"><a href="#products"
+                            class="text-saffron font-bold border-b border-saffron pb-1 cursor-hover">Get Directions</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div
+            class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/10 text-xs tracking-wider">
+            <p>&copy; 2026 Maa Annapurna foods. All rights reserved.</p>
+            <p class="mt-4 md:mt-0">Designed securely <span class="text-saffron">with Devotion.</span></p>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        // 1. Lenis Smooth Scroll Setup
+        const lenis = new Lenis({ duration: 1.5, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => lenis.raf(time * 1000));
+        gsap.ticker.lagSmoothing(0);
+
+
+
+
+        // 4. GSAP Animations
+        function initGSAP() {
+            // Hero Parallax
+            gsap.to('#hero-image', {
+                yPercent: 15,
+                ease: 'none',
+                scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
+            });
+
+            // Standard "Reveal Up" for sections
+            gsap.utils.toArray('.gsap-reveal').forEach(el => {
+                gsap.to(el, {
+                    opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
+                    scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+                });
+            });
+
+            // Staggered Scale up for Quality
+            gsap.utils.toArray('.gsap-scale').forEach((el, i) => {
+                gsap.to(el, {
+                    opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.7)', delay: i * 0.15,
+                    scrollTrigger: { trigger: '#quality', start: 'top 75%' }
+                });
+            });
+
+            // Quality BG Parallax
+            gsap.to('#quality-bg', {
+                yPercent: 20, ease: 'none',
+                scrollTrigger: { trigger: '#quality', start: 'top bottom', end: 'bottom top', scrub: true }
+            });
+
+            // Scroll-triggered product highlighting
+            const pCards = gsap.utils.toArray('.product-card');
+            pCards.forEach(card => {
+                ScrollTrigger.create({
+                    trigger: card,
+                    start: 'top 60%', end: 'bottom 40%',
+                    onEnter: () => { card.classList.add('focused'); card.classList.remove('dimmed'); dimOthers(card); },
+                    onLeave: () => { card.classList.remove('focused'); },
+                    onEnterBack: () => { card.classList.add('focused'); card.classList.remove('dimmed'); dimOthers(card); },
+                    onLeaveBack: () => { card.classList.remove('focused'); }
+                });
+            });
+
+            function dimOthers(activeCard) {
+                pCards.forEach(c => {
+                    if (c !== activeCard && !c.classList.contains('focused')) {
+                        c.classList.add('dimmed');
+                    }
+                });
+            }
+
+            // Navbar Blur
+            const nav = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 80) nav.classList.add('glass-panel', 'shadow-sm', 'text-earth');
+                else nav.classList.remove('glass-panel', 'shadow-sm', 'text-earth');
+            });
+        }
+
+        // Start GSAP immediately since we don't need to wait for frames
+        initGSAP();
+
+    </script>
+</body>
+
+</html>
